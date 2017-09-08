@@ -5,22 +5,25 @@ using Microsoft.Xna.Framework.Input;
 
 namespace Game1
 {
+
     public class Game1 : Game
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        Texture2D myChar;
-        Vector2 charVector;
-        Rectangle destRect, sourceRect;
         float elapsed;
-        float delay;
-        int frames;
+
+        Texture2D spriteSheet;
+        int moveSpeed, animationFrames;
+        float animationDelay;
+        Rectangle drawRect;
+        Rectangle frameRect;
+        char stance;
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-
+            
             #region extra settings
             //Cap at 30 fps
             //this.IsFixedTimeStep = true;
@@ -33,9 +36,11 @@ namespace Game1
 
         protected override void Initialize()
         {
-            charVector = new Vector2(200, 200);
-            destRect = new Rectangle(x: 100, y: 100, width: 50, height: 75);
-            delay = 200f;
+            animationDelay = 200f;
+            animationFrames = 3;
+            moveSpeed = 1;
+            drawRect = new Rectangle(x: 100, y: 100, width: 50, height: 75);
+            stance = 'd';
 
             base.Initialize();
         }
@@ -44,7 +49,7 @@ namespace Game1
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            myChar = this.Content.Load<Texture2D>("charactervector");
+            spriteSheet = this.Content.Load<Texture2D>("charactervector");
         }
 
         protected override void UnloadContent()
@@ -61,32 +66,61 @@ namespace Game1
 
                 elapsed += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
-                if (elapsed >= delay)
+                if (elapsed >= animationDelay)
                 {
-                    if (frames >= 3) frames = 0;
-                    else frames++;
+                    if (animationFrames >= 3) animationFrames = 0;
+                    else animationFrames++;
 
                     elapsed = 0;
                 }
-
-                sourceRect = new Rectangle(0, 0, 50, 75);
-
+                
                 #region MOVEMENT
-                ////MOVE DOWN
-                if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                //MOVE UP
+                if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W))
                 {
-                    charVector.Y += (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-                    sourceRect = new Rectangle(50 * frames, 0, 50, 75);
+                    //Movement
+                    drawRect.Y -= moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                    //Animation
+                    frameRect = new Rectangle(50 * animationFrames, 75, 50, 75);
+                    stance = 'u';
                 }
-                ////MOVE LEFT
-                //if (Keyboard.GetState().IsKeyDown(Keys.Left))
-                //    textureX -= (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-                ////MOVE UP
-                //if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                //    textureY -= (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-                ////MOVE RIGHT
-                //if (Keyboard.GetState().IsKeyDown(Keys.Right))
-                //    textureX += (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                //MOVE DOWN
+                if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S))
+                {
+                    //Movement
+                    drawRect.Y += moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                    //Animation
+                    frameRect = new Rectangle(50 * animationFrames, 0, 50, 75);
+                    stance = 'd';
+                }
+                //MOVE LEFT
+                if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A))
+                {
+                    //Movement
+                    drawRect.X -= moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                    //Animation
+                    frameRect = new Rectangle(50 * animationFrames, 150, 50, 75);
+                    stance = 'l';
+                }
+                //MOVE RIGHT
+                if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D))
+                {
+                    //Movement
+                    drawRect.X += moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                    //Animation
+                    frameRect = new Rectangle(50 * animationFrames, 225, 50, 75);
+                    stance = 'r';
+                }
+
+                //Default player frame
+                if (stance == 'd' && !(Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S)))
+                    frameRect = new Rectangle(0, 0, 50, 75);
+                if (stance == 'u' && !(Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W)))
+                    frameRect = new Rectangle(0, 75, 50, 75);
+                if (stance == 'l' && !(Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A)))
+                    frameRect = new Rectangle(0, 150, 50, 75);
+                if (stance == 'r' && !(Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D)))
+                    frameRect = new Rectangle(50, 225, 50, 75);
 
                 ////OUTSIDE RIGHT
                 //if (textureX == this.GraphicsDevice.Viewport.Width + texture.Width && Keyboard.GetState().IsKeyDown(Keys.Right))
@@ -113,9 +147,9 @@ namespace Game1
 
             spriteBatch.Begin();
 
-            spriteBatch.Draw(myChar,
-                destinationRectangle: destRect,
-                sourceRectangle: sourceRect);
+            spriteBatch.Draw(spriteSheet,
+                destinationRectangle: drawRect,
+                sourceRectangle: frameRect);
 
             spriteBatch.End();
 
