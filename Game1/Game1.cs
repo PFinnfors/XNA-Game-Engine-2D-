@@ -10,20 +10,17 @@ namespace Game1
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        float elapsed;
 
-        Texture2D spriteSheet;
-        int moveSpeed, animationFrames;
-        float animationDelay;
-        Rectangle drawRect;
-        Rectangle frameRect;
-        char stance;
+        Texture2D backg1, backg2, backg3, backg4, backg5, backg6, backg7, backg8, backg9;
+        int[] maps;
+
+        Player hero;
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            
+
             #region extra settings
             //Cap at 30 fps
             //this.IsFixedTimeStep = true;
@@ -31,16 +28,20 @@ namespace Game1
 
             //VSync off
             //this.graphics.SynchronizeWithVerticalRetrace = false;
+
+            graphics.PreferredBackBufferWidth = 1280;
+            graphics.PreferredBackBufferHeight = 720;
+            graphics.IsFullScreen = false;
+
+            this.Window.Title = "Pier's RPG Test";
             #endregion
         }
 
         protected override void Initialize()
         {
-            animationDelay = 200f;
-            animationFrames = 3;
-            moveSpeed = 1;
-            drawRect = new Rectangle(x: 100, y: 100, width: 50, height: 75);
-            stance = 'd';
+            //0 is current map
+            maps = new int[9];
+            maps[0] = 5;
 
             base.Initialize();
         }
@@ -49,7 +50,19 @@ namespace Game1
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            spriteSheet = this.Content.Load<Texture2D>("charactervector");
+            hero = new Player();
+
+            backg1 = Content.Load<Texture2D>("grass");
+            backg2 = Content.Load<Texture2D>("grass");
+            backg3 = Content.Load<Texture2D>("grass");
+            backg4 = Content.Load<Texture2D>("grass");
+            backg5 = Content.Load<Texture2D>("grass");
+            backg6 = Content.Load<Texture2D>("grass");
+            backg7 = Content.Load<Texture2D>("grass");
+            backg8 = Content.Load<Texture2D>("grass");
+            backg9 = Content.Load<Texture2D>("grass");
+
+            hero.LoadContent(Content, "character");
         }
 
         protected override void UnloadContent()
@@ -63,79 +76,9 @@ namespace Game1
             {
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                     Exit();
-
-                elapsed += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
-                if (elapsed >= animationDelay)
-                {
-                    if (animationFrames >= 3) animationFrames = 0;
-                    else animationFrames++;
-
-                    elapsed = 0;
-                }
                 
-                #region MOVEMENT
-                //MOVE UP
-                if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W))
-                {
-                    //Movement
-                    drawRect.Y -= moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-                    //Animation
-                    frameRect = new Rectangle(50 * animationFrames, 75, 50, 75);
-                    stance = 'u';
-                }
-                //MOVE DOWN
-                if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S))
-                {
-                    //Movement
-                    drawRect.Y += moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-                    //Animation
-                    frameRect = new Rectangle(50 * animationFrames, 0, 50, 75);
-                    stance = 'd';
-                }
-                //MOVE LEFT
-                if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A))
-                {
-                    //Movement
-                    drawRect.X -= moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-                    //Animation
-                    frameRect = new Rectangle(50 * animationFrames, 150, 50, 75);
-                    stance = 'l';
-                }
-                //MOVE RIGHT
-                if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D))
-                {
-                    //Movement
-                    drawRect.X += moveSpeed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds);
-                    //Animation
-                    frameRect = new Rectangle(50 * animationFrames, 225, 50, 75);
-                    stance = 'r';
-                }
-
-                //Default player frame
-                if (stance == 'd' && !(Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S)))
-                    frameRect = new Rectangle(0, 0, 50, 75);
-                if (stance == 'u' && !(Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W)))
-                    frameRect = new Rectangle(0, 75, 50, 75);
-                if (stance == 'l' && !(Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A)))
-                    frameRect = new Rectangle(0, 150, 50, 75);
-                if (stance == 'r' && !(Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D)))
-                    frameRect = new Rectangle(50, 225, 50, 75);
-
-                ////OUTSIDE RIGHT
-                //if (textureX == this.GraphicsDevice.Viewport.Width + texture.Width && Keyboard.GetState().IsKeyDown(Keys.Right))
-                //    textureX = -texture.Width;
-                ////OUTSIDE LEFT
-                //if (textureX == -texture.Width && Keyboard.GetState().IsKeyDown(Keys.Left))
-                //    textureX = this.GraphicsDevice.Viewport.Width + texture.Width;
-
-                ////OUTSIDE BOTTOM
-                //if (textureY == this.GraphicsDevice.Viewport.Height + texture.Height && Keyboard.GetState().IsKeyDown(Keys.Down))
-                //    textureY = -texture.Height;
-                ////OUTSIDE TOP
-                //if (textureY == -texture.Height && Keyboard.GetState().IsKeyDown(Keys.Up))
-                //    textureY = this.GraphicsDevice.Viewport.Height + texture.Height;
-                #endregion MOVEMENT
+                //Update player character
+                hero.Update(gameTime, GraphicsDevice, maps);
 
                 base.Update(gameTime);
             }
@@ -147,9 +90,31 @@ namespace Game1
 
             spriteBatch.Begin();
 
-            spriteBatch.Draw(spriteSheet,
-                destinationRectangle: drawRect,
-                sourceRectangle: frameRect);
+            //Draw background texture
+            if (maps[0] == 1)
+                spriteBatch.Draw(backg1, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
+            if (maps[0] == 2)
+                spriteBatch.Draw(backg2, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
+            if (maps[0] == 3)
+                spriteBatch.Draw(backg3, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
+            if (maps[0] == 4)
+                spriteBatch.Draw(backg4, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.YellowGreen);
+            if (maps[0] == 5)
+                spriteBatch.Draw(backg5, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.White);
+            if (maps[0] == 6)
+                spriteBatch.Draw(backg6, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.BlueViolet);
+            if (maps[0] == 7)
+                spriteBatch.Draw(backg7, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
+            if (maps[0] == 8)
+                spriteBatch.Draw(backg8, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Tomato);
+            if (maps[0] == 9)
+                spriteBatch.Draw(backg9, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
+
+            //Draw player character
+            spriteBatch.Draw(hero.texture,
+                destinationRectangle: hero.drawArea,
+                sourceRectangle: hero.frameArea,
+                color: Color.White);
 
             spriteBatch.End();
 
