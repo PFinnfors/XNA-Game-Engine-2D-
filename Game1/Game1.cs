@@ -11,10 +11,12 @@ namespace Game1
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        Texture2D backg1, backg2, backg3, backg4, backg5, backg6, backg7, backg8, backg9;
+        private Sprite backg1, backg2, backg3, backg4, backg5, backg6, backg7, backg8, backg9;
+        private Magic magicBolt;
         int[] maps;
 
         Player hero;
+        Colliding playerColliding;
 
         public Game1()
         {
@@ -39,6 +41,8 @@ namespace Game1
 
         protected override void Initialize()
         {
+            playerColliding = new Colliding();
+
             //0 is current map
             maps = new int[9];
             maps[0] = 5;
@@ -50,19 +54,19 @@ namespace Game1
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            hero = new Player();
+            backg1 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg2 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg3 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg4 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg5 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg6 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg7 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg8 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
+            backg9 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
 
-            backg1 = Content.Load<Texture2D>("grass");
-            backg2 = Content.Load<Texture2D>("grass");
-            backg3 = Content.Load<Texture2D>("grass");
-            backg4 = Content.Load<Texture2D>("grass");
-            backg5 = Content.Load<Texture2D>("grass");
-            backg6 = Content.Load<Texture2D>("grass");
-            backg7 = Content.Load<Texture2D>("grass");
-            backg8 = Content.Load<Texture2D>("grass");
-            backg9 = Content.Load<Texture2D>("grass");
+            magicBolt = new Sprite(Content.Load<Texture2D>("magicTest"), Vector2.Zero, Color.White);
 
-            hero.LoadContent(Content, "character");
+            hero = new Player(Content.Load<Texture2D>("character"), 50, 75, Vector2.One * 200, Color.White);
         }
 
         protected override void UnloadContent()
@@ -76,9 +80,71 @@ namespace Game1
             {
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                     Exit();
-                
+
                 //Update player character
-                hero.Update(gameTime, GraphicsDevice, maps);
+                hero.Update(gameTime, graphics.GraphicsDevice, playerColliding);
+
+                #region BORDER CHECKS
+
+                playerColliding.left = false;
+                playerColliding.up = false;
+                playerColliding.right = false;
+                playerColliding.down = false;
+                
+                //RIGHT BORDER CHECK
+                if (hero.position.X > (GraphicsDevice.Viewport.Width - 25))
+                {
+                    if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D))
+                    {
+                        if (maps[0] != 3 && maps[0] != 6 && maps[0] != 9)
+                        {
+                            maps[0]++;
+                            hero.position = new Vector2(-25, hero.position.Y);
+                        }
+                        else playerColliding.right = true;
+                    }
+                }
+                //LEFT BORDER CHECK
+                if (hero.position.X < -25)
+                {
+                    if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A))
+                    {
+                        if (maps[0] != 1 && maps[0] != 4 && maps[0] != 7)
+                        {
+                            maps[0]--;
+                            hero.position = new Vector2(GraphicsDevice.Viewport.Width - 25, hero.position.Y);
+                        }
+                        else playerColliding.left = true;
+                    }
+                }
+                //BOTTOM BORDER CHECK
+                if (hero.position.Y > (GraphicsDevice.Viewport.Height - 37))
+                {
+                    if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S))
+                    {
+                        if (maps[0] != 7 && maps[0] != 8 && maps[0] != 9)
+                        {
+                            maps[0] = maps[0] + 3;
+                            hero.position = new Vector2(hero.position.X, -37);
+                        }
+                        else playerColliding.down = true;
+                    }
+                }
+                //TOP EDGE CHECK
+                if (hero.position.Y < -37)
+                {
+                    if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W))
+                    {
+                        if (maps[0] != 1 && maps[0] != 2 && maps[0] != 3)
+                        {
+                            maps[0] = maps[0] - 3;
+                            hero.position = new Vector2(hero.position.X, GraphicsDevice.Viewport.Height - 37);
+                        }
+                        else playerColliding.up = true;
+                    }
+                }
+
+                #endregion BORDER CHECKS
 
                 base.Update(gameTime);
             }
@@ -90,35 +156,39 @@ namespace Game1
 
             spriteBatch.Begin();
 
-            //Draw background texture
-            if (maps[0] == 1)
-                spriteBatch.Draw(backg1, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
-            if (maps[0] == 2)
-                spriteBatch.Draw(backg2, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
-            if (maps[0] == 3)
-                spriteBatch.Draw(backg3, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
-            if (maps[0] == 4)
-                spriteBatch.Draw(backg4, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.YellowGreen);
-            if (maps[0] == 5)
-                spriteBatch.Draw(backg5, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.White);
-            if (maps[0] == 6)
-                spriteBatch.Draw(backg6, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.BlueViolet);
-            if (maps[0] == 7)
-                spriteBatch.Draw(backg7, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
-            if (maps[0] == 8)
-                spriteBatch.Draw(backg8, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Tomato);
-            if (maps[0] == 9)
-                spriteBatch.Draw(backg9, destinationRectangle: new Rectangle(0, 0, 1280, 720), color: Color.Firebrick);
+            //Draw backgrounds
+            DrawMaps();
 
             //Draw player character
-            spriteBatch.Draw(hero.texture,
-                destinationRectangle: hero.drawArea,
-                sourceRectangle: hero.frameArea,
-                color: Color.White);
+            hero.Draw(spriteBatch, Color.White);
+
+            magicBolt.Draw(spriteBatch, Vector2.One * 300, Color.White);
 
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        public void DrawMaps()
+        {
+            if (maps[0] == 1)
+                backg1.Draw(spriteBatch, backg1.position, Color.White);
+            if (maps[0] == 2)
+                backg2.Draw(spriteBatch, backg2.position, Color.Coral);
+            if (maps[0] == 3)
+                backg3.Draw(spriteBatch, backg3.position, Color.White);
+            if (maps[0] == 4)
+                backg4.Draw(spriteBatch, backg4.position, Color.AliceBlue);
+            if (maps[0] == 5)
+                backg2.Draw(spriteBatch, backg5.position, Color.White);
+            if (maps[0] == 6)
+                backg6.Draw(spriteBatch, backg6.position, Color.Firebrick);
+            if (maps[0] == 7)
+                backg7.Draw(spriteBatch, backg7.position, Color.White);
+            if (maps[0] == 8)
+                backg8.Draw(spriteBatch, backg8.position, Color.DarkOliveGreen);
+            if (maps[0] == 9)
+                backg9.Draw(spriteBatch, backg9.position, Color.White);
         }
     }
 }

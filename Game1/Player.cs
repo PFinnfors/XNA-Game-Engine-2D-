@@ -9,40 +9,46 @@ namespace Game1
     public class Player
     {
         public Texture2D texture { get; set; }
-        public Rectangle frameArea { get; set; }
-        public Rectangle drawArea { get; set; }
+        private Rectangle frameSize { get; set; }
+        private int frameSizeX { get; set; }
+        private int frameSizeY { get; set; }
+        public Vector2 position { get; set; }
+        public Color color { get; set; }
+
         public char stance { get; set; }
         public int animationFrames { get; set; }
-        public int animationPause { get; set; }
-
-        public int speed { get; set; }
-        public bool colliding { get; set; }
+        public int animationBreak { get; set; }
+        public float speed { get; set; }
         public float internalClock { get; set; }
+        
+        //Instantiate colliding class
+        public Colliding colliding = new Colliding();
 
-        public Player()
+        public Player(Texture2D texture, int frameSizeX, int frameSizeY, Vector2 position, Color color)
         {
-            speed = 2;
+            this.texture = texture;
+            this.frameSizeX = frameSizeX;
+            this.frameSizeY = frameSizeY;
+            this.frameSize = new Rectangle(0, 0, this.frameSizeX, this.frameSizeY);
+            this.position = position;
+            this.color = color;
+
+            speed = 2.0f;
             animationFrames = 3;
-            animationPause = 200;
+            animationBreak = 200;
             stance = 'd';
-            colliding = false;
-
-            frameArea = new Rectangle(0, 0, 50, 75);
-            drawArea = new Rectangle(200, 200, 50, 75);
-        }
-
-        //Load
-        public void LoadContent(ContentManager Content, string spriteSheet)
-        {
-            texture = Content.Load<Texture2D>(spriteSheet);
         }
 
         //Update
-        public void Update(GameTime gameTime, GraphicsDevice graphicsDevice, int[] _maps)
+        public void Update(GameTime gameTime, GraphicsDevice graphicsDevice, Colliding colliding)
         {
+            
+            #region ANIMATION (DEFAULT)
+            
+            //Increment player time
             internalClock += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
-            if (internalClock >= animationPause)
+            //
+            if (internalClock >= animationBreak)
             {
                 if (animationFrames >= 3) animationFrames = 0;
                 else animationFrames++;
@@ -50,98 +56,85 @@ namespace Game1
                 internalClock = 0;
             }
 
-            #region MOVEMENT
+            #endregion ANIMATION (DEFAULT)
+            #region STANCE (DEFAULT)
 
+            //SET CURRENT STANCE DIRECTION
+            if (stance == 'd')
+                frameSize = new Rectangle(0, 0, frameSize.Width, frameSize.Height);
+            if (stance == 'u')
+                frameSize = new Rectangle(0, 75, frameSize.Width, frameSize.Height);
+            if (stance == 'l')
+                frameSize = new Rectangle(0, 150, frameSize.Width, frameSize.Height);
+            if (stance == 'r')
+                frameSize = new Rectangle(50, 225, frameSize.Width, frameSize.Height);
 
-            #region DEFAULT MOVEMENT
+            #endregion STANCE (DEFAULT)
+            #region MOVEMENT (DEFAULT)
 
-            //MOVE UP
+            //Update collision bools from outside player class
+            this.colliding = colliding;
+
+            //MOVING UP
             if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W))
             {
-                //Movement
-                drawArea = new Rectangle(drawArea.X, drawArea.Y - (speed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds)),
-                    drawArea.Width, drawArea.Height);
+                if (!this.colliding.up)
+                {
+                    //Movement
+                    position = new Vector2(position.X, position.Y - (speed + (60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds)));
+                }
                 //Animation
-                frameArea = new Rectangle(50 * animationFrames, 75, 50, 75);
+                frameSize = new Rectangle(50 * animationFrames, 75, frameSizeX, frameSizeY);
                 stance = 'u';
             }
-            ////MOVE DOWN
+
+            //MOVING DOWN
             if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                //Movement
-                drawArea = new Rectangle(drawArea.X, drawArea.Y + speed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds),
-                    drawArea.Width, drawArea.Height);
+                if (!this.colliding.down)
+                {
+                    //Movement
+                    position = new Vector2(position.X, position.Y + (speed + (60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds)));
+                }
                 //Animation
-                frameArea = new Rectangle(50 * animationFrames, 0, 50, 75);
+                frameSize = new Rectangle(50 * animationFrames, 0, frameSizeX, frameSizeY);
                 stance = 'd';
             }
-            ////MOVE LEFT
+
+            //MOVING LEFT
             if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A))
             {
-                //Movement
-                drawArea = new Rectangle(drawArea.X - (speed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds)), drawArea.Y,
-                    drawArea.Width, drawArea.Height);
+                if (!this.colliding.left)
+                {
+                    //Movement
+                    position = new Vector2(position.X - (speed + (60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds)), position.Y);
+                }
                 //Animation
-                frameArea = new Rectangle(50 * animationFrames, 150, 50, 75);
+                frameSize = new Rectangle(50 * animationFrames, 150, frameSizeX, frameSizeY);
                 stance = 'l';
             }
-            ////MOVE RIGHT
+
+            //MOVING RIGHT
             if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D))
             {
-                //Movement
-                if (colliding)
-                    drawArea = new Rectangle(drawArea.X + speed + (int)(60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds), drawArea.Y, drawArea.Width, drawArea.Height);
+                if (!this.colliding.right)
+                {
+                    //Movement
+                    position = new Vector2(position.X + (speed + (60.0f * (float)gameTime.ElapsedGameTime.TotalSeconds)), position.Y);
+                }
                 //Animation
-                frameArea = new Rectangle(50 * animationFrames, 225, 50, 75);
+                frameSize = new Rectangle(50 * animationFrames, 225, frameSizeX, frameSizeY);
                 stance = 'r';
             }
-            #endregion DEFAULT MOVEMENT
 
-            #region MOVEMENT ANIMATION
+            #endregion MOVEMENT (DEFAULT)
+            
 
-            //Default player frame
-            if (stance == 'd' && !(Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S)))
-                frameArea = new Rectangle(0, 0, 50, 75);
-            if (stance == 'u' && !(Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W)))
-                frameArea = new Rectangle(0, 75, 50, 75);
-            if (stance == 'l' && !(Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A)))
-                frameArea = new Rectangle(0, 150, 50, 75);
-            if (stance == 'r' && !(Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D)))
-                frameArea = new Rectangle(50, 225, 50, 75);
-            #endregion DEFAULT MOVEMENT
-
-            #region BORDER MOVEMENT
-
-            //OUTSIDE RIGHT
-            if (drawArea.X == graphicsDevice.Viewport.Width && Keyboard.GetState().IsKeyDown(Keys.Right))
-            {
-                //check if current map is at the right edge
-                if (_maps[0] != 3 && _maps[0] != 6 && _maps[0] != 9)
-                {
-                    //Set current map to the map located to the right
-                    _maps[0]++;
-                    //Move player to the left side
-                    drawArea = new Rectangle(0, drawArea.Y, drawArea.Width, drawArea.Height);
-                }
-                else
-                {
-                    colliding = true;
-                }
-            }
-            ////OUTSIDE LEFT
-            if (drawArea.X == -drawArea.Width && Keyboard.GetState().IsKeyDown(Keys.Left))
-                drawArea = new Rectangle(graphicsDevice.Viewport.Width, drawArea.Y, drawArea.Width, drawArea.Height);
-
-            ////OUTSIDE BOTTOM
-            if (drawArea.Y == graphicsDevice.Viewport.Height && Keyboard.GetState().IsKeyDown(Keys.Down))
-                drawArea = new Rectangle(drawArea.X, drawArea.Y - drawArea.Height, drawArea.Width, drawArea.Height);
-            ////OUTSIDE TOP
-            if (drawArea.Y == -drawArea.Height && Keyboard.GetState().IsKeyDown(Keys.Up))
-                drawArea = new Rectangle(drawArea.X, graphicsDevice.Viewport.Height, drawArea.Width, drawArea.Height);
-            #endregion BORDER MOVEMENT
-
-            #endregion MOVEMENT
         }
 
+        public void Draw(SpriteBatch spriteBatch, Color color)
+        {
+            spriteBatch.Draw(texture, position, frameSize, color);
+        }
     }
 }
