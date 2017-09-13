@@ -12,11 +12,13 @@ namespace Game1
         SpriteBatch spriteBatch;
 
         private Sprite backg1, backg2, backg3, backg4, backg5, backg6, backg7, backg8, backg9;
-        private Magic magicBolt;
+        private Sprite cursor;
         int[] maps;
-
+        
         Player hero;
         Colliding playerColliding;
+        MagicSpell magicBolt;
+        float spellTimer;
 
         public Game1()
         {
@@ -47,6 +49,8 @@ namespace Game1
             maps = new int[9];
             maps[0] = 5;
 
+            magicBolt = new MagicSpell(27, 27, 4, Color.White);
+
             base.Initialize();
         }
 
@@ -64,7 +68,7 @@ namespace Game1
             backg8 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
             backg9 = new Sprite(Content.Load<Texture2D>("grass"), Vector2.Zero, Color.White);
 
-            magicBolt = new Sprite(Content.Load<Texture2D>("magicTest"), Vector2.Zero, Color.White);
+            cursor = new Sprite(Content.Load<Texture2D>("cursor"), Vector2.Zero, Color.White);
 
             hero = new Player(Content.Load<Texture2D>("character"), 50, 75, Vector2.One * 200, Color.White);
         }
@@ -81,8 +85,26 @@ namespace Game1
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                     Exit();
 
+                cursor.position = new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
+
+                if (magicBolt.activeSpellsCount > 0)
+                {
+                    magicBolt.Update(gameTime, hero);
+                    spellTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                }
+
                 //Update player character
                 hero.Update(gameTime, graphics.GraphicsDevice, playerColliding);
+                
+                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                {
+                    if (spellTimer <= 2000)
+                    {
+                        spellTimer = 0;
+                        magicBolt.Create(Content, hero);
+                    }
+
+                }
 
                 #region BORDER CHECKS
 
@@ -90,7 +112,7 @@ namespace Game1
                 playerColliding.up = false;
                 playerColliding.right = false;
                 playerColliding.down = false;
-                
+
                 //RIGHT BORDER CHECK
                 if (hero.position.X > (GraphicsDevice.Viewport.Width - 25))
                 {
@@ -155,14 +177,17 @@ namespace Game1
             GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
-
+            
             //Draw backgrounds
             DrawMaps();
+
+            if (magicBolt.activeSpellsCount > 0)
+                magicBolt.Draw(spriteBatch, magicBolt.position, Color.White);
 
             //Draw player character
             hero.Draw(spriteBatch, Color.White);
 
-            magicBolt.Draw(spriteBatch, Vector2.One * 300, Color.White);
+            cursor.Draw(spriteBatch, cursor.position, Color.White);
 
             spriteBatch.End();
 

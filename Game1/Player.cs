@@ -10,14 +10,14 @@ namespace Game1
     {
         public Texture2D texture { get; set; }
         private Rectangle frameSize { get; set; }
-        private int frameSizeX { get; set; }
-        private int frameSizeY { get; set; }
+        public int frameSizeX { get; set; }
+        public int frameSizeY { get; set; }
         public Vector2 position { get; set; }
         public Color color { get; set; }
 
         public char stance { get; set; }
         public int animationFrames { get; set; }
-        public int animationBreak { get; set; }
+        public int animationInterval { get; set; }
         public float speed { get; set; }
         public float internalClock { get; set; }
         
@@ -35,7 +35,7 @@ namespace Game1
 
             speed = 2.0f;
             animationFrames = 3;
-            animationBreak = 200;
+            animationInterval = 200;
             stance = 'd';
         }
 
@@ -48,7 +48,7 @@ namespace Game1
             //Increment player time
             internalClock += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
             //
-            if (internalClock >= animationBreak)
+            if (internalClock >= animationInterval)
             {
                 if (animationFrames >= 3) animationFrames = 0;
                 else animationFrames++;
@@ -129,6 +129,14 @@ namespace Game1
 
             #endregion MOVEMENT (DEFAULT)
             
+            if (Mouse.GetState().Position.X < position.X )
+                stance = 'l';
+            if (Mouse.GetState().Position.X > position.X)
+                stance = 'r';
+            if (Mouse.GetState().Position.Y < position.Y)
+                stance = 'u';
+            if (Mouse.GetState().Position.Y > position.Y)
+                stance = 'd';
 
         }
 

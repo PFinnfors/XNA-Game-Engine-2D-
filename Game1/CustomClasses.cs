@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace Game1
 {
@@ -21,29 +22,7 @@ namespace Game1
             spriteBatch.Draw(texture, position, color);
         }
     }
-
-    public class MagicSpell
-    {
-        private readonly Texture2D texture;
-        public Vector2 position;
-        public Color color;
-        public float internalClock { get; set; }
-        public int animationFrames { get; set; }
-        public int animationBreak { get; set; }
-
-        public MagicSpell(Texture2D texture, Vector2 position, Color color)
-        {
-            this.texture = texture;
-            this.position = position;
-            this.color = color;
-        }
-
-        public void Draw(SpriteBatch spriteBatch, Vector2 position, Color color)
-        {
-            spriteBatch.Draw(texture, position, color);
-        }
-    }
-
+    
     public class Colliding
     {
         public bool left { get; set; }
@@ -59,4 +38,6 @@ namespace Game1
             this.down = false;
         }
     }
+
+    
 }
