@@ -1,7 +1,8 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 
 namespace Game1
 {
@@ -14,11 +15,16 @@ namespace Game1
         private Sprite backg1, backg2, backg3, backg4, backg5, backg6, backg7, backg8, backg9;
         private Sprite cursor;
         int[] maps;
-        
+
+        public Vector2 prevRSPos;
+        public Vector2 currentRSPos;
+
         Player hero;
         Colliding playerColliding;
         MagicSpell magicBolt;
         float spellTimer;
+
+        private SoundEffect magicStartSFX;
 
         public Game1()
         {
@@ -71,6 +77,8 @@ namespace Game1
             cursor = new Sprite(Content.Load<Texture2D>("cursor"), Vector2.Zero, Color.White);
 
             hero = new Player(Content.Load<Texture2D>("character"), 50, 75, Vector2.One * 200, Color.White);
+
+            magicStartSFX = Content.Load<SoundEffect>("magicStart");
         }
 
         protected override void UnloadContent()
@@ -85,8 +93,9 @@ namespace Game1
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                     Exit();
 
+                //Move cursor to mouse cursor position
                 cursor.position = new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
-
+                
                 if (magicBolt.activeSpellsCount > 0)
                 {
                     magicBolt.Update(gameTime, hero);
@@ -96,12 +105,13 @@ namespace Game1
                 //Update player character
                 hero.Update(gameTime, graphics.GraphicsDevice, playerColliding);
                 
-                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) || GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.X))
                 {
                     if (spellTimer <= 2000)
                     {
                         spellTimer = 0;
                         magicBolt.Create(Content, hero);
+                        magicStartSFX.Play();
                     }
 
                 }
@@ -116,7 +126,8 @@ namespace Game1
                 //RIGHT BORDER CHECK
                 if (hero.position.X > (GraphicsDevice.Viewport.Width - 25))
                 {
-                    if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D))
+                    if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D) ||
+                        GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadRight))
                     {
                         if (maps[0] != 3 && maps[0] != 6 && maps[0] != 9)
                         {
@@ -129,7 +140,8 @@ namespace Game1
                 //LEFT BORDER CHECK
                 if (hero.position.X < -25)
                 {
-                    if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A))
+                    if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A) ||
+                        GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadLeft))
                     {
                         if (maps[0] != 1 && maps[0] != 4 && maps[0] != 7)
                         {
@@ -142,7 +154,8 @@ namespace Game1
                 //BOTTOM BORDER CHECK
                 if (hero.position.Y > (GraphicsDevice.Viewport.Height - 37))
                 {
-                    if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S))
+                    if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S) ||
+                        GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadDown))
                     {
                         if (maps[0] != 7 && maps[0] != 8 && maps[0] != 9)
                         {
@@ -155,7 +168,8 @@ namespace Game1
                 //TOP EDGE CHECK
                 if (hero.position.Y < -37)
                 {
-                    if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W))
+                    if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W) ||
+                        GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadUp))
                     {
                         if (maps[0] != 1 && maps[0] != 2 && maps[0] != 3)
                         {

@@ -42,9 +42,17 @@ namespace Game1
         //Update
         public void Update(GameTime gameTime, GraphicsDevice graphicsDevice, Colliding colliding)
         {
-            
+            #region shorthands
+            var mouseX = Mouse.GetState().Position.X;
+            var mouseY = Mouse.GetState().Position.Y;
+            var viewX = graphicsDevice.Viewport.Width;
+            var viewY = graphicsDevice.Viewport.Height;
+            var centeredX = position.X + (frameSizeX / 2);
+            var centeredY = position.Y + (frameSizeY / 2);
+            #endregion shorthands
+
             #region ANIMATION (DEFAULT)
-            
+
             //Increment player time
             internalClock += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
             //
@@ -76,7 +84,8 @@ namespace Game1
             this.colliding = colliding;
 
             //MOVING UP
-            if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W))
+            if (Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.W) ||
+                GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadUp))
             {
                 if (!this.colliding.up)
                 {
@@ -89,7 +98,8 @@ namespace Game1
             }
 
             //MOVING DOWN
-            if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S))
+            if (Keyboard.GetState().IsKeyDown(Keys.Down) || Keyboard.GetState().IsKeyDown(Keys.S) ||
+                GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadDown))
             {
                 if (!this.colliding.down)
                 {
@@ -102,7 +112,8 @@ namespace Game1
             }
 
             //MOVING LEFT
-            if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A))
+            if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.A) ||
+                GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadLeft))
             {
                 if (!this.colliding.left)
                 {
@@ -115,7 +126,8 @@ namespace Game1
             }
 
             //MOVING RIGHT
-            if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D))
+            if (Keyboard.GetState().IsKeyDown(Keys.Right) || Keyboard.GetState().IsKeyDown(Keys.D) ||
+                GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadRight))
             {
                 if (!this.colliding.right)
                 {
@@ -128,16 +140,32 @@ namespace Game1
             }
 
             #endregion MOVEMENT (DEFAULT)
+            #region CONTROLS (DEFAULT)
+
+            //Mouse is within the game bounds
+            if ((mouseX < viewX && mouseX > 0) && (mouseY < viewY && mouseY > 0))
+            {
+                if ((mouseX < centeredX && ((mouseX - centeredY) > (mouseX - centeredX))))
+                    stance = 'l';
+                if (mouseY < centeredY && ((mouseX - centeredX) > (mouseY - centeredY)))
+                    stance = 'u';
+                if (mouseY > centeredY && ((mouseX - centeredX) < (mouseY - centeredY)))
+                    stance = 'd';
+                if (mouseX > centeredX && ((mouseY - centeredY) < (mouseX - centeredX)))
+                    stance = 'r';
+            }
             
-            if (Mouse.GetState().Position.X < position.X )
+            //
+            if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadLeft))
                 stance = 'l';
-            if (Mouse.GetState().Position.X > position.X)
-                stance = 'r';
-            if (Mouse.GetState().Position.Y < position.Y)
+            if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadUp))
                 stance = 'u';
-            if (Mouse.GetState().Position.Y > position.Y)
+            if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadRight))
+                stance = 'r';
+            if (GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.DPadDown))
                 stance = 'd';
 
+            #endregion CONTROLS (DEFAULT)
         }
 
         public void Draw(SpriteBatch spriteBatch, Color color)
