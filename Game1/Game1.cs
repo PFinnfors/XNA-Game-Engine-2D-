@@ -21,6 +21,7 @@ namespace Game1
 
         Player hero;
         Colliding playerColliding;
+        Enemy turtle;
         MagicSpell magicBolt;
         float spellTimer;
 
@@ -78,6 +79,8 @@ namespace Game1
 
             hero = new Player(Content.Load<Texture2D>("character"), 50, 75, Vector2.One * 200, Color.White);
 
+            turtle = new Enemy(Content.Load<Texture2D>("turtle"), 48, 48, Vector2.One * 100, Color.White);
+
             magicStartSFX = Content.Load<SoundEffect>("magicStart");
         }
 
@@ -95,7 +98,11 @@ namespace Game1
 
                 //Move cursor to mouse cursor position
                 cursor.position = new Vector2(Mouse.GetState().Position.X, Mouse.GetState().Position.Y);
-                
+
+                //
+                turtle.Update(gameTime, maps[0]);
+
+                //
                 if (magicBolt.activeSpellsCount > 0)
                 {
                     magicBolt.Update(gameTime, hero);
@@ -104,7 +111,7 @@ namespace Game1
 
                 //Update player character
                 hero.Update(gameTime, graphics.GraphicsDevice, playerColliding);
-                
+
                 if (Keyboard.GetState().IsKeyDown(Keys.Space) || GamePad.GetState(PlayerIndex.One).IsButtonDown(Buttons.X))
                 {
                     if (spellTimer <= 2000)
@@ -191,12 +198,14 @@ namespace Game1
             GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
-            
+
             //Draw backgrounds
             DrawMaps();
 
             if (magicBolt.activeSpellsCount > 0)
                 magicBolt.Draw(spriteBatch, magicBolt.position, Color.White);
+
+            turtle.Draw(spriteBatch, Color.White);
 
             //Draw player character
             hero.Draw(spriteBatch, Color.White);

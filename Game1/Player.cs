@@ -20,7 +20,7 @@ namespace Game1
         public int animationInterval { get; set; }
         public float speed { get; set; }
         public float internalClock { get; set; }
-        
+
         //Instantiate colliding class
         public Colliding colliding = new Colliding();
 
